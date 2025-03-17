@@ -1,0 +1,95 @@
+import os
+from flask import Flask, request, jsonify
+from twilio.rest import Client
+
+app = Flask(__name__)
+
+# Twilio credentials from environment variables
+account_sid = os.getenv('TWILIO_ACCOUNT_SID', 'your_account_sid_here')
+auth_token = os.getenv('TWILIO_AUTH_TOKEN', 'your_auth_token_here')
+twilio_phone_number = os.getenv('TWILIO_PHONE_NUMBER', 'your_twilio_phone_number')
+
+# Debugging: Print env variables to check if they're loaded correctly
+print('Account SID:', account_sid)
+print('Auth Token:', auth_token)
+print('Twilio Phone Number:', twilio_phone_number)
+
+client = Client(account_sid, auth_token)
+
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    data = request.get_json()
+    to = data.get('to')
+    message = data.get('message')
+    if not to or not message:
+        return jsonify({'error': 'Missing recipient or message'}), 400
+    try:
+        msg = client.messages.create(
+            body=message,
+            from_=twilio_phone_number,
+            to=to
+        )
+        return jsonify({'status': 'success', 'message_sid': msg.sid})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
+@app.route('/make_call', methods=['POST'])
+def make_call():
+    data = request.get_json()
+    to = data.get('to')
+    if not to:
+        return jsonify({'error': 'Missing recipient'}), 400
+    try:
+        call = client.calls.create(
+            twiml='<Response><Say>This is an anonymous call. Goodbye!</Say></Response>',
+            from_=twilio_phone_number,
+            to=to
+        )
+        return jsonify({'status': 'success', 'call_sid': call.sid})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
+if __name__ == '__main__':
+    app.run(debug=True)$env:TWILIO_ACCOUNT_SID = "your_account_sid_here"
+$env:TWILIO_AUTH_TOKEN = "your_auth_token_here"
+$env:TWILIO_PHONE_NUMBER = "your_twilio_phone_number"
+python app.py
+The filename, directory name, or volume label syntax is incorrect.
+
+(venv) C:\Users\HP\Desktop>python app.py
+  File "C:\Users\HP\Desktop\app.py", line 19
+    Twilio Account SID: your_account_sid_here
+           ^^^^^^^
+SyntaxError: invalid syntax
+
+(venv) C:\Users\HP\Desktop>python app.py
+  File "C:\Users\HP\Desktop\app.py", line 19
+    Twilio Account SID: your_account_sid_here
+           ^^^^^^^
+SyntaxError: invalid syntax
+
+(venv) C:\Users\HP\Desktop>curl -X POST http://127.0.0.1:5000/make_call -H "Content-Type: application/json" -d "{\"to\": \"+1234567890\"}"
+curl: (7) Failed to connect to 127.0.0.1 port 5000 after 2014 ms: Could not connect to server
+
+(venv) C:\Users\HP\Desktop>if __name__ == '__main__':
+The syntax of the command is incorrect.
+
+(venv) C:\Users\HP\Desktop>    print("Starting Flask server...")
+Unable to initialize device PRN
+
+(venv) C:\Users\HP\Desktop>    app.run(debug=True)
+'app.run' is not recognized as an internal or external command,
+operable program or batch file.
+
+(venv) C:\Users\HP\Desktop>netstat -ano | findstr :5000
+
+(venv) C:\Users\HP\Desktop>taskkill /PID <PID> /F
+The system cannot find the file specified.
+
+(venv) C:\Users\HP\Desktop>python app.py
+  File "C:\Users\HP\Desktop\app.py", line 19
+    Twilio Account SID: your_account_sid_here
+           ^^^^^^^
+SyntaxError: invalid syntax
+
+(venv) C:\Users\HP\Desktop>
